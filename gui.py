@@ -78,26 +78,24 @@ class FormResponder(Resource):
 		response_file = open("response.tmpl","r")
 		responsetemplate = response_file.read()
 		response_file.close()
-		failure_file = open("failure.tmpl","r")
-		failuretemplate = failure_file.read()
-		failure_file.close()
 
-		self.failure = failuretemplate
 		self.template = responsetemplate
 
-	def _printFailure(self,message):
-		return self.failure.replace("[MSG]",message)
+	#def _printFailure(self,message):
+	#	return self.failure.replace("[MSG]",message)
 
 	def parse_request(self,request):
 		host = str(request.getHeader("host"))
 		escaped_url = cgi.escape(request.args["long-url"][0])
 		if (host in escaped_url):
-			request.write(self._printFailure("dont redirect to me please"))
+			#request.write(self._printFailure("dont redirect to me please"))
+			request.redirect("/failure?msg=Dont redirect to me please..")
 		else:
 			newid = self.urlstore.storeUrl(escaped_url)
-			result = self.template.replace("[URL]",newid)
-			result = result.replace("[root]",host)
-			request.write(result)
+			#result = self.template.replace("[URL]",newid)
+			#result = result.replace("[root]",host)
+			#request.write(result)
+			request.redirect("/resultpage?urlid="+newid)
 		request.finish()
 
 	def handleFailure(self,request,call):
@@ -108,3 +106,32 @@ class FormResponder(Resource):
 		call = defer.succeed(self.parse_request(request))
 		request.notifyFinish().addErrback(self.handleFailure,call)
 		return NOT_DONE_YET
+
+class ResultPage(Resource):
+	def __init__(self):
+		response_file = open("response.tmpl","r")
+		responsetemplate = response_file.read()
+		response_file.close()
+		self.template = responsetemplate
+
+	def render_GET(self,request):
+		urlid = cgi.escape(request.args["urlid"][0])
+		host = str(request.getHeader("host"))
+		result = self.template
+		if (not urlid == None):
+			result = result.replace("[URL]",urlid)
+			result = result.replace("[root]",host)
+		return result
+
+
+class FailurePage(Resource):
+	def __init__(self):
+		tmpl_file = open("failure.tmpl","r")
+		self.failure = tmpl_file.read()
+		tmpl_file.close()
+	def render_GET(self,request):
+		message = cgi.escape(request.args["msg"][0])
+		result = self.failure
+		if (not message == None):
+			result = result.replace("[MSG]",message)
+		return result

@@ -17,7 +17,7 @@ class UrlStore:
 	Returns the hex value without the '0x' part
 	'''
 	def _getHexRepresentation(self,decimal_id):
-		return hex(int(decimal_id))[2:].upper()
+		return hex(long(decimal_id))[2:].upper()
 		
 	def _getNewId(self):
 		new_dec_id = self._getDecimalNewId()
