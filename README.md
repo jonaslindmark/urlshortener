@@ -9,3 +9,6 @@ and the webservice is built with python
 twisted.
 
 Run with python start.py
+
+api.py - Contains UrlStore
+gui.py - Contains all twisted.Resource implementations
