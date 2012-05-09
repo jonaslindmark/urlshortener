@@ -1,8 +1,10 @@
-
-
-
-
+'''
+Stores urls in MongoDB
+'''
 class UrlStore:
+	'''
+	Accepts two pymongo.Collection instances
+	'''
 	def __init__(self,urls,sequences):
 		self.urls = urls
 		self.sequences = sequences

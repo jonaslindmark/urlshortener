@@ -5,13 +5,9 @@ from twisted.internet import reactor
 from twisted.python.log import err
 from twisted.internet import defer
 from twisted.web.util import Redirect
-
+from twisted.web.error import NoResource
 import cgi
 
-class FourOFour(Resource):
-	isLeaf = True
-	def render_GET(self,request):
-		return "404!!!"
 '''
 Dispatches this/[somecode] to a 
 UrlRedirector with [somecode]
@@ -21,7 +17,7 @@ class UrlDispatcher(Resource):
 	def __init__(self,mongostore):
 		Resource.__init__(self)
 		self.mongostore = mongostore
-	
+		
 	def getChild(self, name, request):
 		return UrlRedirecter(name,self.mongostore)
 
@@ -47,7 +43,8 @@ class UrlRedirecter(Resource):
 	def redirectToSavedUrl(self,request):
 		url = self.store.getUrlById(self.urlid)
 		if (url == None):
-			request.write("oh hai")
+			request.setResponseCode(404)
+			request.write("No link attached to that code")
 		else:
 			request.redirect(url)
 		request.finish()
