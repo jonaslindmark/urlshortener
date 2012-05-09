@@ -18,7 +18,6 @@ from pymongo import Connection
 
 formfile = open("form.html","r")
 formcode = formfile.read()
-responsetmpl = open("response.tmpl","r").read()
 
 con = Connection()
 urlstore = UrlStore(con.test.urls, con.test.seqs)
@@ -26,7 +25,7 @@ urlstore = UrlStore(con.test.urls, con.test.seqs)
 
 urldispatcher = UrlDispatcher(urlstore)
 formpage = StaticResource(formcode)
-formresult = FormResponder(urlstore,responsetmpl)
+formresult = FormResponder(urlstore)
 
 root = Resource()
 root.putChild("l",urldispatcher)

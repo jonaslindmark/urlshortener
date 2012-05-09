@@ -12,18 +12,27 @@ class FourOFour(Resource):
 	isLeaf = True
 	def render_GET(self,request):
 		return "404!!!"
-
+'''
+Dispatches this/[somecode] to a 
+UrlRedirector with [somecode]
+'''
 class UrlDispatcher(Resource):
 
 	def __init__(self,mongostore):
 		Resource.__init__(self)
 		self.mongostore = mongostore
-
+	
 	def getChild(self, name, request):
 		return UrlRedirecter(name,self.mongostore)
 
 	
-		
+'''
+Renders GET and redirects to the
+url stored for its urlid in a UrlStore
+
+redirects to a generic failure page if
+not url was associated with that urlid
+'''
 class UrlRedirecter(Resource):
 	def __init__(self,urlid,store):
 		Resource.__init__(self)
@@ -48,6 +57,11 @@ class UrlRedirecter(Resource):
 		request.notifyFinish().addErrback(self.handleFailure,call)
 		return NOT_DONE_YET
 
+
+'''
+Generic static resource that
+displays its htmlcode upon request
+'''
 class StaticResource(Resource):
 	def __init__(self,htmlcode):
 		self.htmlcode = htmlcode
@@ -55,9 +69,15 @@ class StaticResource(Resource):
 	def render_GET(self,request):
 		return self.htmlcode
 
+
+'''
+The resource that will be posted to
+from the form.html
+'''
 class FormResponder(Resource):
 	def __init__(self, urlstore):
 		self.urlstore = urlstore
+		
 		response_file = open("response.tmpl","r")
 		responsetemplate = response_file.read()
 		response_file.close()
@@ -68,15 +88,21 @@ class FormResponder(Resource):
 		self.failure = failuretemplate
 		self.template = responsetemplate
 
+	def _printFailure(self,message):
+		return self.failure.replace("[MSG]",message)
+
 	def parse_request(self,request):
 		host = str(request.getHeader("host"))
 		escaped_url = cgi.escape(request.args["long-url"][0])
 		if (host in escaped_url):
-			
-		newid = self.urlstore.storeUrl(escaped_url)
-		result = self.template.replace("[URL]",newid)
-		result = result.replace("[root]",host)
+			request.write(self._printFailure("dont redirect to me please"))
+		else:
+			newid = self.urlstore.storeUrl(escaped_url)
+			result = self.template.replace("[URL]",newid)
+			result = result.replace("[root]",host)
+			request.write(result)
 		request.finish()
+
 	def handleFailure(self,request,call):
 		err(failure,"Failed to parse form post")
 		call.cancel()
