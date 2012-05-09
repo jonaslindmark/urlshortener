@@ -1,3 +1,5 @@
+import urllib2
+
 '''
 Stores urls in MongoDB
 '''
@@ -14,10 +16,14 @@ class UrlStore:
 		return previousId['id']+1
 	
 	'''
-	Returns the hex value without the '0x' part
+	Returns the hex value without the '0x' and trailing L
 	'''
 	def _getHexRepresentation(self,decimal_id):
-		return hex(long(decimal_id))[2:].upper()
+		hexvalue = str(hex(long(decimal_id))).upper()
+		if (hexvalue.startswith("-")):
+			return hexvalue[3:-1]
+		else:
+			return hexvalue[2:-1]
 		
 	def _getNewId(self):
 		new_dec_id = self._getDecimalNewId()
@@ -25,6 +31,7 @@ class UrlStore:
 		
 	def storeUrl(self,url):
 		url_id = self._getNewId()
+		url = urllib2.quote(url)
 		self.urls.save({"url":url,"id":url_id})
 		return url_id
 		
@@ -32,5 +39,6 @@ class UrlStore:
 		post = self.urls.find_one({"id":id})
 		if (post == None):
 			return None
-		return post['url'].encode("utf-8")
+		url = post['url'].encode("utf-8")
+		return urllib2.unquote(url)
 		

@@ -1,6 +1,5 @@
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
-from twisted.web.server import Site
 from twisted.internet import reactor
 from twisted.python.log import err
 from twisted.internet import defer
@@ -74,27 +73,14 @@ from the form.html
 class FormResponder(Resource):
 	def __init__(self, urlstore):
 		self.urlstore = urlstore
-		
-		response_file = open("response.tmpl","r")
-		responsetemplate = response_file.read()
-		response_file.close()
-
-		self.template = responsetemplate
-
-	#def _printFailure(self,message):
-	#	return self.failure.replace("[MSG]",message)
 
 	def parse_request(self,request):
 		host = str(request.getHeader("host"))
-		escaped_url = cgi.escape(request.args["long-url"][0])
-		if (host in escaped_url):
-			#request.write(self._printFailure("dont redirect to me please"))
+		url_to_save = request.args["long-url"][0]
+		if (host in url_to_save):
 			request.redirect("/failure?msg=Dont redirect to me please..")
 		else:
-			newid = self.urlstore.storeUrl(escaped_url)
-			#result = self.template.replace("[URL]",newid)
-			#result = result.replace("[root]",host)
-			#request.write(result)
+			newid = self.urlstore.storeUrl(url_to_save)
 			request.redirect("/resultpage?urlid="+newid)
 		request.finish()
 
